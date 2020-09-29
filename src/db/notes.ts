@@ -1,6 +1,6 @@
 import { Model, DataTypes, Sequelize } from 'sequelize';
 import sequelize from "../seql"
-
+// ? class  note
 class Note extends Model {
     public id!: string;
     public name!: string;

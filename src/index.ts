@@ -6,12 +6,16 @@ require('dotenv').config()
 import bcrypt from 'bcrypt';
 import User from "./db/user"
 import Note from "./db/notes"
+import Token from "./db/tokens"
+import createAccessToken from './middlewares/createAccessToken';
+import cookieParser from 'cookie-parser';
 
 //todo
 // ? add jwt token persistence 
 // ? add create notes endpoint
 // ? create a client
 
+//todo middleware
 
 const verifyToken = (req: any, res: any, next: any) => {
     const authHeader = req.headers['authorization'];
@@ -27,11 +31,18 @@ const verifyToken = (req: any, res: any, next: any) => {
 
 
 const app = express()
-const port = process.env.PORT || 3000;
-app.use(cors())
+const port = process.env.PORT || 4000;
+app.use(cors(
+    {
+        origin: [
+            "http://localhost:8080"
+        ],
+        credentials: true
+    }
+))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-
+app.use(cookieParser())
 app.get('/data', verifyToken, async (req: userAuthInfoRequest, res) => {
     res.send("reached notes")
     await Note.findAll({
@@ -75,13 +86,55 @@ app.post('/login', async (req, res) => {
         if (isUser) {
             const userId = userFound.id
             const user = { id: userId }
-            const userToken = jwt.sign(user, process.env.TOKEN)
-            res.json({
-                token: userToken
+            const userToken = createAccessToken(user)
+            const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN, {
+                expiresIn: "7d"
+            })
+            await Token.create({ tokenId: refreshToken }).then(() => {
+                res.cookie("refreshToken", refreshToken, {
+                    httpOnly: true,
+                    path: "/token",
+                    secure: false,
+                    domain: 'localhost:4000'
+                })
+               /*  res */.json({
+                    accessToken: userToken,
+                    refreshToken: refreshToken
+                })
+            }).catch(err => {
+                console.log(err);
+
             })
         } else {
             res.send("password Incorrect")
         }
+    }
+
+})
+
+app.post('/token', async (req, res) => {
+    const refreshToken = req.cookies.refreshToken
+    console.log(refreshToken);
+
+    if (refreshToken === null) return res.sendStatus(401);
+    try {
+        const refreshTokenFound = await Token.findOne({
+            where: {
+                tokenId: refreshToken
+            }
+        })
+
+        if (!refreshTokenFound) return res.sendStatus(403);
+        jwt.verify(refreshToken, process.env.REFRESH_TOKEN, (err: any, user: any) => {
+            if (err) return res.sendStatus(403);
+            const newAccessToken = createAccessToken({ user: user.id })
+            res.json({
+                accesToken: newAccessToken
+            })
+        })
+    } catch (error) {
+        console.log(error);
+        res.send(error)
     }
 
 })
