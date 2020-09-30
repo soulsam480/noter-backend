@@ -23,7 +23,7 @@ const verifyToken = (req: any, res: any, next: any) => {
     if (token === null) res.sendStatus(401)
 
     jwt.verify(token, process.env.TOKEN, (err: any, user: any) => {
-        if (err) return res.send(err)
+        if (err) res.sendStatus(401)
         req.user = user
         next()
     })
@@ -80,7 +80,9 @@ app.post('/login', async (req, res) => {
     })
 
     if (!userFound) {
-        res.send("not registered")
+        res.sendStatus(400).json({
+            message: "Invalid Email or Password"
+        })
     } else {
         const isUser = await bcrypt.compare(req.body.password, userFound.password)
         if (isUser) {
@@ -90,23 +92,31 @@ app.post('/login', async (req, res) => {
             const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN, {
                 expiresIn: "7d"
             })
-            await Token.create({ tokenId: refreshToken }).then(() => {
+            await Token.create({ tokenId: refreshToken, userId: userFound.id } as Token).then(() => {
                 res.cookie("refreshToken", refreshToken, {
                     httpOnly: true,
-                    path: "/token",
-                    secure: false,
-                    domain: 'localhost:4000'
+                    secure: process.env.NODE_ENV ? true : false,
+                    path: "/token"
+                }).cookie("loggedIn", true, {
+                    httpOnly: false,
+                    secure: process.env.NODE_ENV ? true : false,
+                    maxAge: 864000000
                 })
-               /*  res */.json({
-                    accessToken: userToken,
-                    refreshToken: refreshToken
-                })
+                    .json({
+                        accessToken: userToken,
+                        name: userFound.name,
+                        email: userFound.email,
+                        userId: userFound.id,
+                        expiresIn: 15000
+                    })
             }).catch(err => {
                 console.log(err);
 
             })
         } else {
-            res.send("password Incorrect")
+            res.sendStatus(400).json({
+                message: "Invalid Email or Password"
+            })
         }
     }
 
@@ -114,9 +124,7 @@ app.post('/login', async (req, res) => {
 
 app.post('/token', async (req, res) => {
     const refreshToken = req.cookies.refreshToken
-    console.log(refreshToken);
-
-    if (refreshToken === null) return res.sendStatus(401);
+    if (refreshToken === undefined) return res.sendStatus(401);
     try {
         const refreshTokenFound = await Token.findOne({
             where: {
@@ -135,6 +143,29 @@ app.post('/token', async (req, res) => {
     } catch (error) {
         console.log(error);
         res.send(error)
+    }
+
+})
+
+app.post('/logout', async (req, res) => {
+    const userId = req.body.userId;
+    if (userId === undefined) res.sendStatus(401);
+    try {
+        await Token.destroy({
+            where: {
+                userId: userId
+            }
+        }).then(() => {
+            res.clearCookie("refreshToken", {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production' ? true : false,
+                path: "/token"
+            }).sendStatus(200)
+        }).catch(() => {
+            res.sendStatus(401);
+        })
+    } catch (error) {
+        res.sendStatus(401);
     }
 
 })

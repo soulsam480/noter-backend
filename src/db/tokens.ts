@@ -3,6 +3,7 @@ import sequelize from "../seql"
 
 class Token extends Model {
     tokenId: string;
+    userId: string
 }
 
 Token.init({
@@ -10,13 +11,17 @@ Token.init({
         type: DataTypes.STRING,
         allowNull: false,
         primaryKey: true
+    },
+    userId: {
+        type: DataTypes.STRING,
+        allowNull: false
     }
 }, {
     tableName: "tokens",
     sequelize
 })
 
-Token.sync().then(() => {
+Token.sync({ force: true }).then(() => {
     console.log("token is ready!!");
 }).catch((err => {
     console.log(err);
