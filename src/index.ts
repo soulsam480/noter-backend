@@ -87,7 +87,7 @@ app.post('/login', async (req, res) => {
         const isUser = await bcrypt.compare(req.body.password, userFound.password)
         if (isUser) {
             const userId = userFound.id
-            const user = { id: userId }
+            const user = { id: userId, email: userFound.email }
             const userToken = createAccessToken(user)
             const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN, {
                 expiresIn: "7d"
@@ -124,7 +124,7 @@ app.post('/login', async (req, res) => {
 
 app.post('/token', async (req, res) => {
     const refreshToken = req.cookies.refreshToken
-    if (refreshToken === undefined) return res.sendStatus(401);
+    if (refreshToken === undefined) res.sendStatus(401);
     try {
         const refreshTokenFound = await Token.findOne({
             where: {
@@ -132,7 +132,7 @@ app.post('/token', async (req, res) => {
             }
         })
 
-        if (!refreshTokenFound) return res.sendStatus(403);
+        if (!refreshTokenFound) res.sendStatus(403);
         jwt.verify(refreshToken, process.env.REFRESH_TOKEN, (err: any, user: any) => {
             if (err) return res.sendStatus(403);
             const newAccessToken = createAccessToken({ user: user.id })
