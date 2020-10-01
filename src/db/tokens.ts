@@ -21,7 +21,7 @@ Token.init({
     sequelize
 })
 
-Token.sync({ force: true }).then(() => {
+Token.sync().then(() => {
     console.log("token is ready!!");
 }).catch((err => {
     console.log(err);
