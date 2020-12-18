@@ -1,4 +1,4 @@
-import express from "express"
+/* import express from "express"
 const router = express.Router();
 import jwt from "jsonwebtoken";
 import { userAuthInfoRequest } from '../../custom.d';
@@ -31,4 +31,4 @@ router.get('/', verifyToken, async (req: userAuthInfoRequest, res) => {
 
 })
 
-export default router
+export default router */
