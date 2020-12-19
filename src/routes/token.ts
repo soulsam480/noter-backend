@@ -21,10 +21,8 @@ router.post('/', async (req, res) => {
       refreshToken,
       process.env.REFRESH_TOKEN,
       async (err: any, user: any) => {
-        console.log(user.id);
-
         if (err) return res.sendStatus(403);
-        const newAccessToken = createAccessToken({ user: user.id });
+        const newAccessToken = createAccessToken({ id: user.id });
         const newRefreshToken = jwt.sign(
           { id: user.id },
           process.env.REFRESH_TOKEN,
@@ -32,24 +30,29 @@ router.post('/', async (req, res) => {
             expiresIn: '7d',
           },
         );
-        await Token.create({ tokenId: newRefreshToken, user: user.id })
-          .save()
-          .then(() => {
-            res
-              .cookie('refreshToken', newRefreshToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production' ? true : false,
-                path: '/',
-                maxAge: 864000000,
+        await Token.delete({ user: user.id })
+          .then(async () => {
+            await Token.create({ tokenId: newRefreshToken, user: user.id })
+              .save()
+              .then(() => {
+                res
+                  .cookie('refreshToken', newRefreshToken, {
+                    httpOnly: true,
+                    secure:
+                      process.env.NODE_ENV === 'production' ? true : false,
+                    path: '/',
+                    maxAge: 864000000,
+                  })
+                  .json({
+                    accessToken: newAccessToken,
+                  });
               })
-              .json({
-                accessToken: newAccessToken,
+              .catch((err) => {
+                console.log(err);
+                res.send(err);
               });
           })
-          .catch((err) => {
-            console.log(err);
-            res.send(err);
-          });
+          .catch((err) => console.log(err));
       },
     );
   } catch (error) {
