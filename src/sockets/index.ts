@@ -1,18 +1,18 @@
 import { Server } from 'socket.io';
 import { Server as httpServer } from 'http';
 
-export class Ws {
-  io: Server;
+let ws: Server;
+export const createWsServer = (server: httpServer): Server => {
+  ws = new Server(server, {
+    path: '/ws',
+    cors: {
+      origin: ['http://localhost:8080'],
+      methods: ['GET', 'POST'],
+      allowedHeaders: ['Authorization'],
+      credentials: true,
+    },
+  });
+  return ws;
+};
 
-  constructor(server: httpServer) {
-    this.io = new Server(server, {
-      path: '/ws',
-      cors: {
-        origin: ['http://localhost:8080'],
-        methods: ['GET', 'POST'],
-        allowedHeaders: ['Authorization'],
-        credentials: true,
-      },
-    });
-  }
-}
+export { ws };

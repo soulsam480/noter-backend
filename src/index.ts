@@ -5,14 +5,15 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import http from 'http';
 import { createConnection } from 'typeorm';
-import { Ws } from './sockets/index';
-
+import { createWsServer } from './sockets/index';
+import boardSockets from './sockets/baordws';
 //todo route imports
 import register from './routes/register';
 import login from './routes/login';
 import token from './routes/token';
 import logout from './routes/logout';
 import getuserdata from './routes/getuserdata';
+import boards from './routes/boards';
 require('dotenv').config();
 
 //todo main
@@ -34,7 +35,7 @@ app.use('/login', login);
 app.use('/token', token);
 app.use('/logout', logout);
 app.use('/user', getuserdata);
-
+app.use('/boards', boards);
 const server = http.createServer(app);
 
 createConnection().then(() => {
@@ -43,10 +44,7 @@ createConnection().then(() => {
   });
 });
 
-export const ws = new Ws(server).io;
-
-ws.use((socket, next) => {
-  console.log(socket.handshake.headers);
+const ws = createWsServer(server).use((socket, next) => {
   //@ts-ignore
   const header = socket.handshake.headers['authorization'];
   if (!header) return next(new Error('authentication error'));
@@ -60,6 +58,8 @@ ws.use((socket, next) => {
     }
   });
 });
+
+boardSockets(ws);
 
 process.on('uncaughtException', (e) => {
   console.log(e);
