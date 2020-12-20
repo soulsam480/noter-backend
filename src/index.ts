@@ -46,9 +46,9 @@ createConnection().then(() => {
 export const ws = new Ws(server).io;
 
 ws.use((socket, next) => {
-  console.log(socket);
+  console.log(socket.handshake.headers);
   //@ts-ignore
-  const header = socket.handshake.headers['Authorization'];
+  const header = socket.handshake.headers['authorization'];
   if (!header) return next(new Error('authentication error'));
   const token = header.split(' ')[1];
   return jwt.verify(token, process.env.TOKEN, (err: any, user: any) => {
