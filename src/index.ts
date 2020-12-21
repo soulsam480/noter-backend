@@ -59,6 +59,10 @@ const ws = createWsServer(server).use((socket, next) => {
   });
 });
 
+/* ws.on('connection', (sock) => {
+  console.log(sock);
+}); */
+
 boardSockets(ws);
 
 process.on('uncaughtException', (e) => {

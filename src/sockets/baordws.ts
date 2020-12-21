@@ -1,21 +1,22 @@
+import { createSendBoards, sendAllBoards, updateSendBoard } from './emitters';
 import { Server, Socket } from 'socket.io';
-import { Board } from './../entity/Board';
-import { createBoard } from './../utils/boardapi';
 
 export default (ws: Server) => {
   ws.on('connection', (sock: Socket) => {
-    console.log('connected');
+    //todo send boards on connection
+    sock.on('get-boards', async ({ uid }) => {
+      sendAllBoards(sock, uid);
+    });
+
+    //todo create and send boards on create-board
     sock.on('create-board', async (data) => {
+      createSendBoards(sock, data);
+    });
+
+    sock.on('update-board', async (data) => {
       console.log(data);
-      await createBoard(data.data, data.meta, data.userId);
-      sock.emit(
-        'boards',
-        await Board.find({
-          where: {
-            user: { id: data.userId },
-          },
-        }),
-      );
+
+      updateSendBoard(sock, data);
     });
   });
 };
