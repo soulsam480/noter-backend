@@ -6,7 +6,8 @@
   "author": "soulsam480",
   "license": "MIT",
   "scripts": {
-    "serve": "nodemon --exec ts-node -- ./src/index.ts"
+    "serve": "nodemon --exec ts-node -- ./src/index.ts",
+    "start": "ts-node ./src/index.ts"
   },
   "dependencies": {
     "@types/bcrypt": "^3.0.0",
