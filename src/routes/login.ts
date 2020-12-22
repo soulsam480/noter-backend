@@ -16,11 +16,10 @@ router.post('/', async (req, res) => {
   });
 
   if (!userFound) {
-    res.sendStatus(400).json({
-      message: 'Invalid Email or Password',
-    });
+    res.status(400).send('User not found');
   } else {
     const isUser = await bcrypt.compare(req.body.password, userFound.password);
+
     if (isUser) {
       const userId = userFound.id;
       const user = { id: userId };
@@ -57,9 +56,7 @@ router.post('/', async (req, res) => {
           console.log(err);
         });
     } else {
-      res.sendStatus(400).json({
-        message: 'Invalid Email or Password',
-      });
+      res.status(400).send('invalid email or password');
     }
   }
 });

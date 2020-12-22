@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 require('dotenv').config();
 
 //todo logout endpoint
-router.post('/', async (req, res) => {
+router.get('/', async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
   if (refreshToken === undefined) res.sendStatus(401);
   jwt.verify(
