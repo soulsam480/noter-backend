@@ -22,7 +22,12 @@ const port = process.env.PORT || 4000;
 app.use(
   cors({
     credentials: true,
-    origin: ['http://localhost:8081', 'http://localhost:8080'],
+    origin: [
+      'http://localhost:8081',
+      'http://localhost:8080',
+      'http://localhost:8085',
+      'https://noter.sambitsahoo.com',
+    ],
   }),
 );
 app.use(express.json());
