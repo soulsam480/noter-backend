@@ -15,6 +15,7 @@ import logout from './routes/logout';
 import getuserdata from './routes/getuserdata';
 import boards from './routes/boards';
 require('dotenv').config();
+console.log(process.env.NODE_ENV);
 
 //todo main
 const app = express();
@@ -43,33 +44,33 @@ app.use('/user', getuserdata);
 app.use('/boards', boards);
 const server = http.createServer(app);
 
-createConnection().then(() => {
-  server.listen(port, () => {
-    console.log(`app is listening on port ${port}`);
+async function main() {
+  await createConnection().then((conn) => {
+    conn.synchronize();
+    server.listen(port, () => {
+      console.log(`app is listening on port ${port}`);
+    });
   });
-});
 
-const ws = createWsServer(server).use((socket, next) => {
-  //@ts-ignore
-  const header = socket.handshake.headers['authorization'];
-  if (!header) return next(new Error('authentication error'));
-  const token = header.split(' ')[1];
-  return jwt.verify(token, process.env.TOKEN, (err: any, user: any) => {
-    if (err) {
-      console.log(err);
-      return next(new Error('authentication error'));
-    } else {
-      return next();
-    }
+  const ws = createWsServer(server).use((socket, next) => {
+    //@ts-ignore
+    const header = socket.handshake.headers['authorization'];
+    if (!header) return next(new Error('authentication error'));
+    const token = header.split(' ')[1];
+    return jwt.verify(token, process.env.TOKEN, (err: any, user: any) => {
+      if (err) {
+        console.log(err);
+        return next(new Error('authentication error'));
+      } else {
+        return next();
+      }
+    });
   });
-});
 
-/* ws.on('connection', (sock) => {
-  console.log(sock);
-}); */
+  boardSockets(ws);
+}
 
-boardSockets(ws);
-
+main();
 process.on('uncaughtException', (e) => {
   console.log(e);
 });

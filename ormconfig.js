@@ -6,10 +6,15 @@ module.exports = {
   username: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_DBNAME,
-  synchronize: true,
   logging: true,
-  entities: ['src/entity/**/*.ts'],
-  migrations: ['src/migration/**/*.ts'],
+  entities:
+    process.env.NODE_ENV === 'dev'
+      ? ['src/entity/**/*.ts']
+      : ['./entity/*'],
+  migrations:
+    process.env.NODE_ENV === 'dev'
+      ? ['src/migration/**/*.ts']
+      : ['./migrations/*'],
   subscribers: ['src/subscriber/**/*.ts'],
   cli: {
     entitiesDir: 'src/entity',
