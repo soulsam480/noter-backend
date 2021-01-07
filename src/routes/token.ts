@@ -8,7 +8,7 @@ require('dotenv').config();
 // todo newtoken endpoint
 router.post('/', async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
-  if (refreshToken === undefined) res.sendStatus(401);
+  if (refreshToken === undefined) return res.sendStatus(401);
   try {
     const refreshTokenFound = await Token.findOne({
       where: {
@@ -16,7 +16,7 @@ router.post('/', async (req, res) => {
       },
     });
 
-    if (!refreshTokenFound) res.sendStatus(403);
+    if (!refreshTokenFound) return res.sendStatus(403);
     jwt.verify(
       refreshToken,
       process.env.REFRESH_TOKEN,

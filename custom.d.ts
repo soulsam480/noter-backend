@@ -1,6 +1,11 @@
-import { Request } from "express"
+import { Request } from 'express';
+import { Socket } from 'socket.io';
 export interface userAuthInfoRequest extends Request {
-    user?: {
-        id?: string
-    }
+  user?: {
+    id?: string;
+  };
+}
+
+export interface SocketWithUser extends Socket {
+  userId: string;
 }

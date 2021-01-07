@@ -1,5 +1,5 @@
-import { /* DeleteResult, */ UpdateResult } from 'typeorm';
-import { Board } from '../entity/Board';
+import { Board } from './../entity/Board';
+import { UpdateResult } from 'typeorm';
 
 export const createBoard = async (
   data: JSON,
@@ -43,20 +43,23 @@ export const updateBoard = (
   });
 };
 
-/* export const deleteBoard = (
+export const giveAccess = async (
   userId: string,
   boardId: string,
-): Promise<DeleteResult> => {
+): Promise<UpdateResult> => {
+  const board = await Board.findOne({ id: boardId });
   return new Promise(async (res, rej) => {
-    await Board.delete({
-      user: {
-        id: userId,
+    await Board.update(
+      { id: boardId },
+      {
+        access: [...board.access, userId],
       },
-      id: boardId,
-    })
+    )
       .then((dat) => {
         res(dat);
       })
-      .catch((err) => rej(err));
+      .catch((err) => {
+        rej(err);
+      });
   });
-}; */
+};

@@ -1,43 +1,57 @@
-import { createBoard, updateBoard } from './../utils/boardapi';
+import { SocketWithUser } from './../../custom.d';
+import { createBoard, updateBoard, giveAccess } from './../utils/boardapi';
 import { Board } from './../entity/Board';
-import { Socket } from 'socket.io';
 
-export const sendAllBoards = async (sock: Socket, uid: string | any) => {
+export const sendAllBoards = async (sock: SocketWithUser) => {
   sock.emit(
     'boards',
     await Board.find({
-      where: {
-        user: { id: uid },
-      },
+      where: [
+        {
+          user: { id: sock.userId },
+        },
+        { access: [sock.userId] },
+      ],
     }),
   );
 };
 
-export const createSendBoards = async (sock: Socket, data: any) => {
-  await createBoard(data.data, data.meta, data.userId).then(async (res) => {
+export const createSendBoards = async (sock: SocketWithUser, data: any) => {
+  await createBoard(data.data, data.meta, sock.userId).then(async (res) => {
     sock.emit('board-created', res);
-    sock.emit(
-      'boards',
-      await Board.find({
-        where: {
-          user: { id: data.userId },
-        },
-      }),
-    );
+    await sendAllBoards(sock);
   });
 };
 
-export const updateSendBoard = async (sock: Socket, data: any) => {
-  await updateBoard(data.data, data.meta, data.userId, data.boardId).then(
+export const updateSendBoard = async (sock: SocketWithUser, data: any) => {
+  await updateBoard(data.data, data.meta, sock.userId, data.boardId).then(
     async () => {
-      sock.emit(
-        'boards',
-        await Board.find({
-          where: {
-            user: { id: data.userId },
-          },
-        }),
-      );
+      await sendAllBoards(sock);
     },
   );
+};
+
+export const deleteBoard = async (sock: SocketWithUser, data: any) => {
+  Board.delete({ id: data.boardId })
+    .then(async () => {
+      sock.emit('success', {
+        message: 'success',
+      });
+    })
+    .catch(async (err) => {
+      sock.emit('error', err);
+    });
+};
+
+export const giveUserAccesToBoard = async (sock: SocketWithUser, data: any) => {
+  const { boardId, requestUserId } = data;
+  await giveAccess(requestUserId, boardId)
+    .then(() => {
+      sock.emit('success', {
+        message: 'success',
+      });
+    })
+    .catch((err) => {
+      sock.emit('error', err);
+    });
 };

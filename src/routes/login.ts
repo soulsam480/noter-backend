@@ -16,7 +16,7 @@ router.post('/', async (req, res) => {
   });
 
   if (!userFound) {
-    res.status(400).send('User not found');
+    res.status(400).send({ message: 'User not found' });
   } else {
     const isUser = await bcrypt.compare(req.body.password, userFound.password);
 
@@ -53,10 +53,10 @@ router.post('/', async (req, res) => {
             });
         })
         .catch((err) => {
-          console.log(err);
+          res.sendStatus(501);
         });
     } else {
-      res.status(400).send('invalid email or password');
+      res.status(400).send({ message: 'invalid email or password' });
     }
   }
 });

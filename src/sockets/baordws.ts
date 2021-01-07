@@ -1,22 +1,33 @@
-import { createSendBoards, sendAllBoards, updateSendBoard } from './emitters';
-import { Server, Socket } from 'socket.io';
+import { SocketWithUser } from './../../custom.d';
+import {
+  createSendBoards,
+  deleteBoard,
+  giveUserAccesToBoard,
+  sendAllBoards,
+  updateSendBoard,
+} from './emitters';
+import { Server } from 'socket.io';
 
 export default (ws: Server) => {
-  ws.on('connection', (sock: Socket) => {
-    //todo send boards on connection
-    sock.on('get-boards', async ({ uid }) => {
-      sendAllBoards(sock, uid);
+  ws.on('connection', (sock: SocketWithUser) => {
+    sock.on('get-boards', async () => {
+      sendAllBoards(sock);
     });
 
-    //todo create and send boards on create-board
     sock.on('create-board', async (data) => {
       createSendBoards(sock, data);
     });
 
     sock.on('update-board', async (data) => {
-      console.log(data);
-
       updateSendBoard(sock, data);
+    });
+
+    sock.on('delete-board', async (data) => {
+      await deleteBoard(sock, data).then(() => sendAllBoards(sock));
+    });
+
+    sock.on('give-access-board', async (data) => {
+      await giveUserAccesToBoard(sock, data);
     });
   });
 };

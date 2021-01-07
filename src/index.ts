@@ -7,7 +7,6 @@ import http from 'http';
 import { createConnection } from 'typeorm';
 import { createWsServer } from './sockets/index';
 import boardSockets from './sockets/baordws';
-//todo route imports
 import register from './routes/register';
 import login from './routes/login';
 import token from './routes/token';
@@ -15,9 +14,9 @@ import logout from './routes/logout';
 import getuserdata from './routes/getuserdata';
 import boards from './routes/boards';
 require('dotenv').config();
-console.log(process.env.NODE_ENV);
+import { join } from 'path';
+import { SocketWithUser } from 'custom';
 
-//todo main
 const app = express();
 const port = process.env.PORT || 4000;
 app.use(
@@ -34,8 +33,6 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
-//todo routes
 app.use('/register', register);
 app.use('/login', login);
 app.use('/token', token);
@@ -45,28 +42,35 @@ app.use('/boards', boards);
 const server = http.createServer(app);
 
 async function main() {
-  await createConnection().then((conn) => {
-    conn.synchronize();
+  createConnection({
+    type: 'postgres',
+    database: 'noter',
+    entities: [join(__dirname, './entity/*')],
+    migrations: [join(__dirname, './migrations/*')],
+    host: process.env.DB_HOST,
+    username: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    logging: process.env.NODE_ENV === 'dev',
+  }).then(async (conn) => {
+    await conn.runMigrations();
     server.listen(port, () => {
       console.log(`app is listening on port ${port}`);
     });
   });
 
-  const ws = createWsServer(server).use((socket, next) => {
-    //@ts-ignore
+  const ws = createWsServer(server).use((socket: SocketWithUser, next) => {
     const header = socket.handshake.headers['authorization'];
     if (!header) return next(new Error('authentication error'));
     const token = header.split(' ')[1];
     return jwt.verify(token, process.env.TOKEN, (err: any, user: any) => {
       if (err) {
-        console.log(err);
         return next(new Error('authentication error'));
       } else {
+        socket.userId = user.id;
         return next();
       }
     });
   });
-
   boardSockets(ws);
 }
 

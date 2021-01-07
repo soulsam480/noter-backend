@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('path');
 module.exports = {
   type: 'postgres',
   host: process.env.DB_HOST,
@@ -7,18 +8,12 @@ module.exports = {
   password: process.env.DB_PASS,
   database: process.env.DB_DBNAME,
   logging: true,
-  entities:
-    process.env.NODE_ENV === 'dev'
-      ? ['src/entity/**/*.ts']
-      : ['./entity/*'],
-  migrations:
-    process.env.NODE_ENV === 'dev'
-      ? ['src/migration/**/*.ts']
-      : ['./migrations/*'],
+  entities: ['src/entity/**/*.ts'],
+  migrations: ['src/migrations/**/*.ts'],
   subscribers: ['src/subscriber/**/*.ts'],
   cli: {
     entitiesDir: 'src/entity',
-    migrationsDir: 'src/migration',
+    migrationsDir: 'src/migrations',
     subscribersDir: 'src/subscriber',
   },
 };

@@ -23,6 +23,9 @@ export class Board extends BaseEntity {
   @ManyToOne(() => User, (user) => user.boards)
   user: User;
 
+  @Column('text', { nullable: true, array: true })
+  access: string[];
+
   @CreateDateColumn()
   createdAt: Date;
 
