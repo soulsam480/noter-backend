@@ -1,4 +1,3 @@
-import { Token } from './../entity/Token';
 import express from 'express';
 const router = express.Router();
 import jwt from 'jsonwebtoken';
@@ -13,20 +12,7 @@ router.get('/', async (req, res) => {
     process.env.REFRESH_TOKEN,
     async (err: any, user: any) => {
       if (err) res.sendStatus(403);
-      try {
-        await Token.delete({ user: user.id })
-          .then(() => {
-            res
-              .clearCookie('refreshToken')
-              .clearCookie('loggedIn')
-              .sendStatus(200);
-          })
-          .catch(() => {
-            res.sendStatus(401);
-          });
-      } catch (error) {
-        res.sendStatus(401);
-      }
+      res.clearCookie('refreshToken').clearCookie('loggedIn').sendStatus(200);
     },
   );
 });

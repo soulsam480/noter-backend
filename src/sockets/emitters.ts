@@ -19,13 +19,18 @@ export const sendAllBoards = async (sock: SocketWithUser) => {
 export const createSendBoards = async (sock: SocketWithUser, data: any) => {
   await createBoard(data.data, data.meta, sock.userId).then(async (res) => {
     sock.emit('board-created', res);
-    await sendAllBoards(sock);
+    // await sendAllBoards(sock);
   });
 };
 
 export const updateSendBoard = async (sock: SocketWithUser, data: any) => {
   await updateBoard(data.data, data.meta, sock.userId, data.boardId).then(
     async () => {
+      sock.broadcast.to(data.boardId).emit('update:room-board', {
+        data: data.data,
+        meta: data.meta,
+        id: data.boardId,
+      });
       await sendAllBoards(sock);
     },
   );
@@ -54,4 +59,20 @@ export const giveUserAccesToBoard = async (sock: SocketWithUser, data: any) => {
     .catch((err) => {
       sock.emit('error', err);
     });
+};
+
+export const joinRoom = async (sock: SocketWithUser, data: any) => {
+  console.log(sock.userId);
+
+  const { _slug } = data;
+  const board = await Board.findOne({
+    where: [
+      { id: _slug, user: { id: sock.userId } },
+      { access: [sock.userId] },
+    ],
+  });
+  if (board) {
+    sock.join(_slug);
+    sock.broadcast.to(_slug).emit('join');
+  }
 };

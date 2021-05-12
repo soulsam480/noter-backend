@@ -43,13 +43,10 @@ const server = http.createServer(app);
 
 async function main() {
   createConnection({
-    type: 'postgres',
-    database: 'noter',
+    type: 'sqlite',
+    database: join(__dirname, '../db.sqlite'),
     entities: [join(__dirname, './entity/*')],
     migrations: [join(__dirname, './migrations/*')],
-    host: process.env.DB_HOST,
-    username: process.env.DB_USER,
-    password: process.env.DB_PASS,
     logging: process.env.NODE_ENV === 'dev',
   }).then(async (conn) => {
     await conn.runMigrations();

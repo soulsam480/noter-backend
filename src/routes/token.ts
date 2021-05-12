@@ -1,4 +1,3 @@
-import { Token } from './../entity/Token';
 import express from 'express';
 const router = express.Router();
 import createAccessToken from '../middlewares/createAccessToken';
@@ -10,13 +9,6 @@ router.post('/', async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
   if (refreshToken === undefined) return res.sendStatus(401);
   try {
-    const refreshTokenFound = await Token.findOne({
-      where: {
-        tokenId: refreshToken,
-      },
-    });
-
-    if (!refreshTokenFound) return res.sendStatus(403);
     jwt.verify(
       refreshToken,
       process.env.REFRESH_TOKEN,
@@ -30,29 +22,16 @@ router.post('/', async (req, res) => {
             expiresIn: '7d',
           },
         );
-        await Token.delete({ user: user.id })
-          .then(async () => {
-            await Token.create({ tokenId: newRefreshToken, user: user.id })
-              .save()
-              .then(() => {
-                res
-                  .cookie('refreshToken', newRefreshToken, {
-                    httpOnly: true,
-                    secure:
-                      process.env.NODE_ENV === 'production' ? true : false,
-                    path: '/',
-                    maxAge: 864000000,
-                  })
-                  .json({
-                    accessToken: newAccessToken,
-                  });
-              })
-              .catch((err) => {
-                console.log(err);
-                res.send(err);
-              });
+        res
+          .cookie('refreshToken', newRefreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'prod' ? true : false,
+            path: '/',
+            maxAge: 864000000,
           })
-          .catch((err) => console.log(err));
+          .json({
+            accessToken: newAccessToken,
+          });
       },
     );
   } catch (error) {

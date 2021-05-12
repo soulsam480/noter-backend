@@ -6,7 +6,6 @@ import {
   CreateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { Token } from './Token';
 import { Board } from './Board';
 
 @Entity({ name: 'users' })
@@ -28,9 +27,6 @@ export class User extends BaseEntity {
 
   @Column({ type: 'text', nullable: true })
   imgUrl: string;
-
-  @OneToMany(() => Token, (tokens) => tokens.user)
-  tokens: Token;
 
   @OneToMany(() => Board, (boards) => boards.user)
   boards: Board;

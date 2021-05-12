@@ -2,7 +2,6 @@ import express from 'express';
 const router = express.Router();
 import bcrypt from 'bcrypt';
 import { User } from '../entity/User';
-import { Token } from '../entity/Token';
 import jwt from 'jsonwebtoken';
 import createAccessToken from '../middlewares/createAccessToken';
 require('dotenv').config();
@@ -35,30 +34,26 @@ router.post('/', async (req, res) => {
           expiresIn: '7d',
         },
       );
-      await Token.create({ tokenId: refreshToken, user: { id: resp.id } })
-        .save()
-        .then(() => {
-          res
-            .cookie('refreshToken', refreshToken, {
-              httpOnly: true,
-              secure: process.env.NODE_ENV === 'production' ? true : false,
-              path: '/',
-              maxAge: 864000000,
-            })
-            .cookie('loggedIn', true, {
-              httpOnly: false,
-              secure: process.env.NODE_ENV === 'production' ? true : false,
-              maxAge: 864000000,
-            })
-            .json({
-              accessToken: userToken,
-              name: resp.name,
-              email: resp.email,
-              userId: resp.id,
-              username: resp.username,
-              imgUrl: resp.imgUrl,
-              createdAt: resp.createdAt,
-            });
+      res
+        .cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production' ? true : false,
+          path: '/',
+          maxAge: 864000000,
+        })
+        .cookie('loggedIn', true, {
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production' ? true : false,
+          maxAge: 864000000,
+        })
+        .json({
+          accessToken: userToken,
+          name: resp.name,
+          email: resp.email,
+          userId: resp.id,
+          username: resp.username,
+          imgUrl: resp.imgUrl,
+          createdAt: resp.createdAt,
         });
     })
     .catch((err) => {

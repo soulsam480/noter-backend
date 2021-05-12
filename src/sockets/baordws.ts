@@ -3,6 +3,7 @@ import {
   createSendBoards,
   deleteBoard,
   giveUserAccesToBoard,
+  joinRoom,
   sendAllBoards,
   updateSendBoard,
 } from './emitters';
@@ -13,7 +14,9 @@ export default (ws: Server) => {
     sock.on('get-boards', async () => {
       sendAllBoards(sock);
     });
-
+    sock.on('create-room', (data) => {
+      joinRoom(sock, data);
+    });
     sock.on('create-board', async (data) => {
       createSendBoards(sock, data);
     });
