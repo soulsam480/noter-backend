@@ -8,3 +8,4 @@ temp/
 awskey.pem
 dist/
 db.sqlite
+db.sqlite*

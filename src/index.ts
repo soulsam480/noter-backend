@@ -22,12 +22,7 @@ const port = process.env.PORT || 4000;
 app.use(
   cors({
     credentials: true,
-    origin: [
-      'http://localhost:8081',
-      'http://localhost:8080',
-      'http://localhost:8085',
-      'https://noter.sambitsahoo.com',
-    ],
+    origin: '*',
   }),
 );
 app.use(express.json());
@@ -43,7 +38,7 @@ const server = http.createServer(app);
 
 async function main() {
   createConnection({
-    type: 'sqlite',
+    type: 'better-sqlite3',
     database: join(__dirname, '../db.sqlite'),
     entities: [join(__dirname, './entity/*')],
     migrations: [join(__dirname, './migrations/*')],

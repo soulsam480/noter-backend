@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "bcrypt": "^5.0.0",
+    "better-sqlite3": "^7.4.0",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
@@ -20,7 +21,6 @@
     "jsonwebtoken": "^8.5.1",
     "reflect-metadata": "^0.1.10",
     "socket.io": "3.0.4",
-    "sqlite3": "^5.0.2",
     "ts-node-dev": "^1.1.6",
     "typeorm": "0.2.29"
   },
